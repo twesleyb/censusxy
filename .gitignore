@@ -80,3 +80,7 @@ vignettes/*.pdf
 
 # Ignore ARCHIVED files.
 ARCHIVE/
+
+# Ignore temporary files.
+*.swp
+*.swn
