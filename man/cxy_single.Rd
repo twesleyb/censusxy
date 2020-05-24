@@ -2,7 +2,7 @@
 % Please edit documentation in R/single.R
 \name{cxy_single}
 \alias{cxy_single}
-\title{Geocode Single Structured Address}
+\title{Geocode Single Parsed Address}
 \usage{
 cxy_single(
   street,

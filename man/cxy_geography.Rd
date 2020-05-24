@@ -2,7 +2,7 @@
 % Please edit documentation in R/single.R
 \name{cxy_geography}
 \alias{cxy_geography}
-\title{Single GeoLookup}
+\title{Geocode Single Coordinate Pair}
 \usage{
 cxy_geography(
   lon,
