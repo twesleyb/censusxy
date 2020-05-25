@@ -78,6 +78,9 @@ vignettes/*.pdf
 *.knit.md
 .Rproj.user
 
+# renv/library.
+renv/library/
+
 # Ignore ARCHIVED files.
 ARCHIVE/
 
