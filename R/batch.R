@@ -17,10 +17,10 @@
 #' @param vintage Optional Census Vintage to geocode against. See Details.
 #' @param timeout Numeric, in minutes, how long until request times out
 #' @param parallel Integer, number of cores greater than one if parallel requests are desired. See Details.
-#' @param class One of 'dataframe' or 'sf' denoting the output class. 'sf' will only return matched addresses.
+#' @param class defaults to 'dataframe'. 'sf' feature is disabled.
 #' @param output One of 'simple' or 'full' denoting the returned columns. Simple returns just coordinates.
 #'
-#' @return A data.frame or sf object containing geocoded results
+#' @return A data.frame containing geocoded results
 #'
 #' @details
 #' Parallel requests are not currently supported on Windows.
@@ -36,7 +36,10 @@
 #' @importFrom utils write.table read.csv
 #'
 #' @export
-cxy_geocode <- function(.data, id = NULL, street, city = NULL, state = NULL, zip = NULL, return = 'locations', benchmark = 'Public_AR_Current', vintage = NULL, timeout = 30, parallel = 1, class = 'dataframe', output = 'simple'){
+cxy_geocode <- function(.data, id = NULL, street, city = NULL, state = NULL, zip = NULL, 
+			return = 'locations', benchmark = 'Public_AR_Current', 
+			vintage = NULL, timeout = 30, parallel = 1, 
+			class = 'dataframe', output = 'simple'){
 
   # Check Specification of Arguments
   if(missing(.data) | missing(street)){
@@ -54,12 +57,12 @@ cxy_geocode <- function(.data, id = NULL, street, city = NULL, state = NULL, zip
   if(return == 'geographies' & is.null(vintage)){
     stop("`vintage` must be specified for return = 'geographies'")
   }
-  if(!class %in% c('dataframe', 'sf')){
-    stop("`class` must be one of 'dataframe' or 'sf'")
+  if(!class %in% c('dataframe')){
+    stop("`class` must be one a 'dataframe'; class 'sf' not currently supported")
   }
-  if(class == 'sf' & !requireNamespace('sf')){
-    stop('Please install the `sf` package to use the sf output feature')
-  }
+  #if(class == 'sf' & !requireNamespace('sf')){
+  #  stop('Please install the `sf` package to use the sf output feature')
+  #}
   if(!output %in% c('simple', 'full')){
     stop("`output` must be one of 'simple' or 'full'")
   }
@@ -205,11 +208,11 @@ cxy_geocode <- function(.data, id = NULL, street, city = NULL, state = NULL, zip
 
   # Optionally, Return an SF Object
   if(class == 'sf'){
-    valid <- return_df[which(!is.na(return_df$cxy_lat)),]
+    #valid <- return_df[which(!is.na(return_df$cxy_lat)),]
     #sf <- sf::st_as_sf(valid, coords = c('cxy_lon', 'cxy_lat'), crs = 4269) # NAD83
     stop("The 'sf' option is disabled due to unmet udunits dependency.")
     # Message Number of Rows Removed
-    message(nrow(return_df) - nrow(valid), ' rows removed to create an sf object. These were addresses that the geocoder could not match.')
+    #message(nrow(return_df) - nrow(valid), ' rows removed to create an sf object. These were addresses that the geocoder could not match.')
     return(NULL)
   }
 

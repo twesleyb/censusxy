@@ -43,12 +43,12 @@ cxy_geocode(
 
 \item{parallel}{Integer, number of cores greater than one if parallel requests are desired. See Details.}
 
-\item{class}{One of 'dataframe' or 'sf' denoting the output class. 'sf' will only return matched addresses.}
+\item{class}{defaults to 'dataframe'. 'sf' feature is disabled.}
 
 \item{output}{One of 'simple' or 'full' denoting the returned columns. Simple returns just coordinates.}
 }
 \value{
-A data.frame or sf object containing geocoded results
+A data.frame containing geocoded results
 }
 \description{
 Provides access to the US Census Bureau batch endpoints for locations and geographies.
