@@ -19,13 +19,16 @@
 # Load renv.
 renv::load(getrd())
 
-# Load twesleyb/censusxy.
+# Load twesleyb/censusxy and additional libs:
 library(censusxy)
+library(microbenchmark)
+library(tidygeocoder)
+library(dplyr)
 
 # Load the test data.
 data(stl_homicides)
 
-# NOTE: Parsing Addresses
+# NOTE: On parsing addresses with censusxy:
 # Dataframe or alike object should contain seperate columns for:
 # * street address - required; the rest are optional.
 # * city
@@ -34,26 +37,28 @@ data(stl_homicides)
 
 #--------------------------------------------------------------------
 # Try batch Geocoding
+
+# Time to geocode the homicide_sf dataset:
 start <- Sys.time()
 homicide_sf <- cxy_geocode(stl_homicides, street = 'street_address', 
 			   city = 'city', state = 'state')
 end <- Sys.time()
 
-# Status.
+# Results:
 n_addrs <- nrow(stl_homicides)
 delta_t <- difftime(end,start,units="secs")
 message(paste("Time to geocode", formatC(n_addrs,big.mark=","), 
-	      "addresses:", round(delta_t,3),"seconds."))
+	      "addresses:", round(delta_t/60,3),"minutes"))
 message(paste("Average time per row:",round(as.numeric(delta_t/n_addrs),3),
 	"seconds."))
 
 # Print the result:
-knitr::kable(head(homicide_sf))
+#knitr::kable(head(homicide_sf))
 
-# Worked BUT, very slow.
+# NOTE: Worked BUT, very slow.
 
 #---------------------------------------------------------------------
-# How long does the single address function take?
+# Compare time taken to encode a single address with tidygeocoder.
 
 # Add column with complete addresses.
 df <- homicide_sf
@@ -61,28 +66,31 @@ df$address <- paste(df$street_address,df$city,
 		    df$state,sep=" ")
 
 # Get a random address.
-library(dplyr)
-library(microbenchmark)
-
 set.seed(as.numeric(Sys.time()))
 df <- df %>% filter(!duplicated(address))
 address <- df %>% filter(address == sample(address,1)) %>% 
 	select(street_address,city,state) %>% as.list()
+names(address)[1] <- "street"
 message(paste("\nGeocoding a single address:", 
 	      paste(unlist(address), collapse=" ")))
-names(address)[1] <- "street"
 
 # A function to perform geocoding with cxy_single:
 geocode <- function(addr) { suppressWarnings(do.call(cxy_single, addr)) } 
+#geocode(address)
 
-# A function to do an equivalent operation with tidygeocoder.
-geocode_tidy <- function(address) {
-	df <- data.frame("address"=paste(address,collapse=" "))
-	result <- tidygeocoder::geocode(df,"address")
-	return(result)
-}
+# A function to do an equivalent operation with tidygeocoder:
+# NOTE: tidygeocoder takes a df as input, for a fair comparison,
+# let's do this little bit of work before hand.
+df <- data.frame("address"=paste(addr,collapse=" "))
+geocode_tidy <- function(df) { tidygeocoder::geocode(df,"address") }
 
 # Run experiment:
-message("\nAnalyzing time to encode 100 adderesses with Censusxy...")
-result <- microbenchmark(geocode(address),geocode_tidy(address),times=100)
+message("\nAnalyzing time to encode 100 adderesses...")
+result <- microbenchmark(geocode(address), geocode_tidy(df), times=100)
 
+# Check mean time for each:
+result_df <- as.data.frame(result) %>% 
+	group_by(expr) 
+result_df %>% summarize(Mean=mean(time*10^-6)) %>% knitr::kable()
+
+# The result is clear, tidygeocoder is much faster.
